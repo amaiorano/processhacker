@@ -2105,27 +2105,9 @@ ULONG_PTR PhMwpOnUserMessage(
             PhMwpOnServicesUpdated();
         }
         break;
-    case WM_PH_NETWORK_ITEM_ADDED:
-        {
-            ULONG runId = (ULONG)WParam;
-            PPH_NETWORK_ITEM networkItem = (PPH_NETWORK_ITEM)LParam;
-
-            PhMwpOnNetworkItemAdded(runId, networkItem);
-        }
-        break;
-    case WM_PH_NETWORK_ITEM_MODIFIED:
-        {
-            PhMwpOnNetworkItemModified((PPH_NETWORK_ITEM)LParam);
-        }
-        break;
-    case WM_PH_NETWORK_ITEM_REMOVED:
-        {
-            PhMwpOnNetworkItemRemoved((PPH_NETWORK_ITEM)LParam);
-        }
-        break;
     case WM_PH_NETWORK_ITEMS_UPDATED:
         {
-            PhMwpOnNetworkItemsUpdated();
+            PhMwpOnNetworkItemsUpdated((ULONG)WParam);
         }
         break;
     }
@@ -2141,12 +2123,7 @@ VOID NTAPI PhMwpNetworkItemAddedHandler(
     PPH_NETWORK_ITEM networkItem = (PPH_NETWORK_ITEM)Parameter;
 
     PhReferenceObject(networkItem);
-    PostMessage(
-        PhMainWndHandle,
-        WM_PH_NETWORK_ITEM_ADDED,
-        PhGetRunIdProvider(&PhMwpNetworkProviderRegistration),
-        (LPARAM)networkItem
-        );
+    PhPushProviderEventQueue(&PhMwpNetworkEventQueue, ProviderAddedEvent, Parameter, PhGetRunIdProvider(&PhMwpNetworkProviderRegistration));
 }
 
 VOID NTAPI PhMwpNetworkItemModifiedHandler(
@@ -2156,7 +2133,7 @@ VOID NTAPI PhMwpNetworkItemModifiedHandler(
 {
     PPH_NETWORK_ITEM networkItem = (PPH_NETWORK_ITEM)Parameter;
 
-    PostMessage(PhMainWndHandle, WM_PH_NETWORK_ITEM_MODIFIED, 0, (LPARAM)networkItem);
+    PhPushProviderEventQueue(&PhMwpNetworkEventQueue, ProviderModifiedEvent, Parameter, PhGetRunIdProvider(&PhMwpNetworkProviderRegistration));
 }
 
 VOID NTAPI PhMwpNetworkItemRemovedHandler(
@@ -2166,7 +2143,7 @@ VOID NTAPI PhMwpNetworkItemRemovedHandler(
 {
     PPH_NETWORK_ITEM networkItem = (PPH_NETWORK_ITEM)Parameter;
 
-    PostMessage(PhMainWndHandle, WM_PH_NETWORK_ITEM_REMOVED, 0, (LPARAM)networkItem);
+    PhPushProviderEventQueue(&PhMwpNetworkEventQueue, ProviderRemovedEvent, Parameter, PhGetRunIdProvider(&PhMwpNetworkProviderRegistration));
 }
 
 VOID NTAPI PhMwpNetworkItemsUpdatedHandler(
@@ -2174,7 +2151,7 @@ VOID NTAPI PhMwpNetworkItemsUpdatedHandler(
     _In_opt_ PVOID Context
     )
 {
-    PostMessage(PhMainWndHandle, WM_PH_NETWORK_ITEMS_UPDATED, 0, 0);
+    PostMessage(PhMainWndHandle, WM_PH_NETWORK_ITEMS_UPDATED, PhGetRunIdProvider(&PhMwpNetworkProviderRegistration), 0);
 }
 
 VOID PhMwpLoadSettings(

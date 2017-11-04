@@ -38,6 +38,7 @@
 
 PPH_MAIN_TAB_PAGE PhMwpNetworkPage;
 HWND PhMwpNetworkTreeNewHandle;
+PH_PROVIDER_EVENT_QUEUE PhMwpNetworkEventQueue;
 
 static PH_CALLBACK_REGISTRATION NetworkItemAddedRegistration;
 static PH_CALLBACK_REGISTRATION NetworkItemModifiedRegistration;
@@ -46,7 +47,6 @@ static PH_CALLBACK_REGISTRATION NetworkItemsUpdatedRegistration;
 
 static BOOLEAN NetworkFirstTime = TRUE;
 static BOOLEAN NetworkTreeListLoaded = FALSE;
-static BOOLEAN NetworkNeedsRedraw = FALSE;
 
 BOOLEAN PhMwpNetworkPageCallback(
     _In_ struct _PH_MAIN_TAB_PAGE *Page,
@@ -60,6 +60,8 @@ BOOLEAN PhMwpNetworkPageCallback(
     case MainTabPageCreate:
         {
             PhMwpNetworkPage = Page;
+
+            PhInitializeProviderEventQueue(&PhMwpNetworkEventQueue, 100);
 
             PhRegisterCallback(
                 &PhNetworkItemAddedEvent,
@@ -309,52 +311,45 @@ VOID PhShowNetworkContextMenu(
     PhFree(networkItems);
 }
 
-VOID PhMwpOnNetworkItemAdded(
-    _In_ ULONG RunId,
-    _In_ _Assume_refs_(1) PPH_NETWORK_ITEM NetworkItem
-    )
-{
-    PPH_NETWORK_NODE networkNode;
-
-    if (!NetworkNeedsRedraw)
-    {
-        TreeNew_SetRedraw(PhMwpNetworkTreeNewHandle, FALSE);
-        NetworkNeedsRedraw = TRUE;
-    }
-
-    networkNode = PhAddNetworkNode(NetworkItem, RunId);
-    PhDereferenceObject(NetworkItem);
-}
-
-VOID PhMwpOnNetworkItemModified(
-    _In_ PPH_NETWORK_ITEM NetworkItem
-    )
-{
-    PhUpdateNetworkNode(PhFindNetworkNode(NetworkItem));
-}
-
-VOID PhMwpOnNetworkItemRemoved(
-    _In_ PPH_NETWORK_ITEM NetworkItem
-    )
-{
-    if (!NetworkNeedsRedraw)
-    {
-        TreeNew_SetRedraw(PhMwpNetworkTreeNewHandle, FALSE);
-        NetworkNeedsRedraw = TRUE;
-    }
-
-    PhRemoveNetworkNode(PhFindNetworkNode(NetworkItem));
-}
-
 VOID PhMwpOnNetworkItemsUpdated(
-    VOID
+    _In_ ULONG RunId
     )
 {
+    PPH_PROVIDER_EVENT events;
+    ULONG count;
+    ULONG i;
+
+    events = PhFlushProviderEventQueue(&PhMwpNetworkEventQueue, RunId, &count);
+
+    if (events)
+    {
+        TreeNew_SetRedraw(PhMwpNetworkTreeNewHandle, FALSE);
+
+        for (i = 0; i < count; i++)
+        {
+            PH_PROVIDER_EVENT_TYPE type = PH_PROVIDER_EVENT_TYPE(events[i]);
+            PPH_NETWORK_ITEM networkItem = PH_PROVIDER_EVENT_OBJECT(events[i]);
+
+            switch (type)
+            {
+            case ProviderAddedEvent:
+                PhAddNetworkNode(networkItem, events[i].RunId);
+                PhDereferenceObject(networkItem);
+                break;
+            case ProviderModifiedEvent:
+                PhUpdateNetworkNode(PhFindNetworkNode(networkItem));
+                break;
+            case ProviderRemovedEvent:
+                PhRemoveNetworkNode(PhFindNetworkNode(networkItem));
+                break;
+            }
+        }
+
+        PhFree(events);
+    }
+
     PhTickNetworkNodes();
 
-    if (NetworkNeedsRedraw)
-    {
+    if (count != 0)
         TreeNew_SetRedraw(PhMwpNetworkTreeNewHandle, TRUE);
-        NetworkNeedsRedraw = FALSE;
-    }
 }

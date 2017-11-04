@@ -441,6 +441,7 @@ VOID PhMwpOnServicesUpdated(
 
 extern PPH_MAIN_TAB_PAGE PhMwpNetworkPage;
 extern HWND PhMwpNetworkTreeNewHandle;
+extern struct _PH_PROVIDER_EVENT_QUEUE PhMwpNetworkEventQueue;
 
 BOOLEAN PhMwpNetworkPageCallback(
     _In_ struct _PH_MAIN_TAB_PAGE *Page,
@@ -469,21 +470,8 @@ VOID PhMwpInitializeNetworkMenu(
     _In_ ULONG NumberOfNetworkItems
     );
 
-VOID PhMwpOnNetworkItemAdded(
-    _In_ ULONG RunId,
-    _In_ _Assume_refs_(1) PPH_NETWORK_ITEM NetworkItem
-    );
-
-VOID PhMwpOnNetworkItemModified(
-    _In_ PPH_NETWORK_ITEM NetworkItem
-    );
-
-VOID PhMwpOnNetworkItemRemoved(
-    _In_ PPH_NETWORK_ITEM NetworkItem
-    );
-
 VOID PhMwpOnNetworkItemsUpdated(
-    VOID
+    _In_ ULONG RunId
     );
 
 // Users
