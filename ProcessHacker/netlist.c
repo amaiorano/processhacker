@@ -231,7 +231,7 @@ PPH_NETWORK_NODE PhAddNetworkNode(
 
     PhEmCallObjectOperation(EmNetworkNodeType, networkNode, EmObjectCreate);
 
-    TreeNew_NodesStructured(NetworkTreeListHandle);
+    //TreeNew_NodesStructured(NetworkTreeListHandle);
 
     return networkNode;
 }
@@ -302,7 +302,7 @@ VOID PhpRemoveNetworkNode(
 
     PhFree(NetworkNode);
 
-    TreeNew_NodesStructured(NetworkTreeListHandle);
+    //TreeNew_NodesStructured(NetworkTreeListHandle);
 }
 
 VOID PhUpdateNetworkNode(
@@ -313,7 +313,7 @@ VOID PhUpdateNetworkNode(
     PhClearReference(&NetworkNode->TooltipText);
 
     PhInvalidateTreeNewNode(&NetworkNode->Node, TN_CACHE_ICON);
-    TreeNew_NodesStructured(NetworkTreeListHandle);
+    //TreeNew_NodesStructured(NetworkTreeListHandle);
 }
 
 VOID PhTickNetworkNodes(
@@ -324,7 +324,7 @@ VOID PhTickNetworkNodes(
     {
         // Sorting is on, but it's not one of our columns. Force a rebuild. (If it was one of our
         // columns, the restructure would have been handled in PhUpdateNetworkNode.)
-        TreeNew_NodesStructured(NetworkTreeListHandle);
+        //TreeNew_NodesStructured(NetworkTreeListHandle);
     }
 
     PH_TICK_SH_STATE_TN(PH_NETWORK_NODE, ShState, NetworkNodeStateList, PhpRemoveNetworkNode, PhCsHighlightingDuration, NetworkTreeListHandle, TRUE, NULL);
@@ -371,7 +371,7 @@ END_SORT_FUNCTION
 
 BEGIN_SORT_FUNCTION(LocalAddress)
 {
-    sortResult = PhCompareStringZ(networkItem1->LocalAddressString, networkItem2->LocalAddressString, TRUE);
+    sortResult = PhCompareStringZ(networkItem1->LocalAddressString, networkItem2->LocalAddressString, FALSE);
 }
 END_SORT_FUNCTION
 
@@ -389,7 +389,7 @@ END_SORT_FUNCTION
 
 BEGIN_SORT_FUNCTION(RemoteAddress)
 {
-    sortResult = PhCompareStringZ(networkItem1->RemoteAddressString, networkItem2->RemoteAddressString, TRUE);
+    sortResult = PhCompareStringZ(networkItem1->RemoteAddressString, networkItem2->RemoteAddressString, FALSE);
 }
 END_SORT_FUNCTION
 

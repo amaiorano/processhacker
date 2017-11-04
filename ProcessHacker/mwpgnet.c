@@ -348,6 +348,8 @@ VOID PhMwpOnNetworkItemsUpdated(
         PhFree(events);
     }
 
+    TreeNew_NodesStructured(PhMwpNetworkTreeNewHandle);
+
     PhTickNetworkNodes();
 
     if (count != 0)
