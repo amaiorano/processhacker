@@ -64,6 +64,10 @@ BOOLEAN ProcessTreeFilterCallback(
 {
     PPH_PROCESS_NODE processNode = (PPH_PROCESS_NODE)Node;
 
+	static volatile BOOLEAN ShowChildrenOfFilteredNodes = TRUE;
+	if (ShowChildrenOfFilteredNodes && processNode->Parent && processNode->Parent->Node.Visible)
+		return TRUE;
+
     if (PhIsNullOrEmptyString(SearchboxText))
         return TRUE;
 
